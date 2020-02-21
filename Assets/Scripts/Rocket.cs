@@ -7,10 +7,11 @@ public class Rocket : MonoBehaviour
 {
 
     Rigidbody rigidBody;
-
     AudioSource audioSource;
     bool m_ToggleChange;
-    
+    [SerializeField] float rcsThrust = 500f;
+    [SerializeField] float mainThrust = 500f;
+
 
 
     // Start is called before the first frame update
@@ -25,37 +26,60 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ProcessInput();
-
+        
+        Rotation(); 
+        Thrusting();
     }
 
-    private void ProcessInput()
+    void OnCollisionEnter(Collision collision)
     {
-        if (Input.GetKey(KeyCode.Space)) //space bar == thrust key
+        switch (collision.gameObject.tag)
         {
-            rigidBody.AddRelativeForce(Vector3.up);
-            if (!audioSource.isPlaying)
+            case "Friendly":
+                print("Ok");//do nothing
+                break;
+            case "Fuel Station":
+                print("Fueling");
+                break;
+            default:
+                print("Dead");
+                break;
+
+        }
+
+    }
+    private void Rotation()
+        {
+        
+        rigidBody.freezeRotation = true; //take manual control of rotation
+        if (Input.GetKey(KeyCode.A)) //pivot left
             {
-                audioSource.Play();
+            float rotationThisFrame = rcsThrust * Time.deltaTime;    
+            transform.Rotate(Vector3.forward * rotationThisFrame);
+            }
+
+            else if (Input.GetKey(KeyCode.D)) // pivot right
+            {
+            float rotationThisFrame = rcsThrust * Time.deltaTime;
+            transform.Rotate(-Vector3.forward * rotationThisFrame);
+            }
+        rigidBody.freezeRotation = false; // resume normal physics
+        }
+
+        private void Thrusting()
+        {
+            if (Input.GetKey(KeyCode.Space)) //space bar == thrust key
+            {
+                rigidBody.AddRelativeForce(Vector3.up * mainThrust);
+                if (!audioSource.isPlaying)
+                {
+                    audioSource.Play();
+                }
+            }
+
+            else
+            {
+                audioSource.Stop();
             }
         }
-
-        else 
-        {
-            audioSource.Stop();
-        }
-
-        if (Input.GetKey(KeyCode.A)) //pivot left
-        {
-            transform.Rotate(Vector3.forward);
-        }
-
-        else if (Input.GetKey(KeyCode.D)) // pivot right
-        {
-            transform.Rotate(-Vector3.forward);
-        }
-
-        
-    }
-
 }
